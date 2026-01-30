@@ -7,7 +7,7 @@ delta_time = 1/60
 WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
 WINDOW_TITLE = "Platformer - Mode Vol (Sans Gravité Joueur)"
-CLICK_NIVEAU=30
+CLICK_NIVEAU=40
 
 # Constants used to scale our sprites from their original size
 TILE_SCALING = 0.5
