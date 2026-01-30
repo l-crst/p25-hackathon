@@ -13,13 +13,13 @@ TILE_SCALING = 0.5
 
 # Movement speed of player, in pixels per frame
 PLAYER_MOVEMENT_SPEED = 5
-GRAVITY = 1.0
-PLAYER_SCALE = 0.1
+GRAVITY = 1/20
+PLAYER_SCALE = 0.05
 
 
 
 def dist(a,b):
-    return ((a[0] - b[0])**2 + (a[0] - b[0])**2)**0.5
+    return ((a[0] - b[0])**2 + (a[1] - b[1])**2)**0.5
 
 #world of goos en python
 class Goo(arcade.Sprite):
@@ -33,7 +33,7 @@ class Goo(arcade.Sprite):
         self.vx = 0
         self.vy = 0
         self.masse = 400e-3 #kg
-        self.rayon = 1e-2 #cm
+        self.rayon = 20 #cm
 
         #Initialiser les listes de goos proches (et les liens associés)
         self.goos_proches= arcade.SpriteList()
@@ -42,8 +42,9 @@ class Goo(arcade.Sprite):
             d = dist((self.center_x, self.center_y), (goo.center_x, goo.center_y))
             if goo == self:
                 continue
-            if d < 20e-2:
+            if d < 20:
                 self.goos_proches.append(goo)
+                goo.goos_proches.append(self)
                 nouveau_lien = Lien([self, goo])
                 self.liens_tot.append(nouveau_lien)
                 self.liens.append(nouveau_lien)
@@ -52,8 +53,10 @@ class Goo(arcade.Sprite):
         if self.est_plateforme:
             self.alpha = 0
             #enlever la gravité
-        super().__init__() #mettre le sprite ici
+        super().__init__('media/boule.png', scale = PLAYER_SCALE) #mettre le sprite ici
 
+    def update(self, delta_time):
+        self.force_elastique()
 
     def ajouter_plateforme_proche(self): #distinction de cas si sur un coté ou un coin
         for plateforme in self.plateformes:
@@ -143,22 +146,24 @@ class GameView(arcade.Window):
         # Call the parent class and set up the window
         super().__init__(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE)
 
-        self.player_sprite = arcade.Sprite("media/boule.png", scale=PLAYER_SCALE)
-
-        self.player_sprite.center_x = 64
-        self.player_sprite.center_y = 128
+        self.cursor = arcade.Sprite("media/cursor.png", scale=PLAYER_SCALE)
+        self.cursor.center_x = 64
+        self.cursor.center_y = 128
 
         # SpriteList for our player
         self.player_list = arcade.SpriteList()
-        self.player_list.append(self.player_sprite)
+        self.player_list.append(self.cursor)
 
         self.wall_list = arcade.SpriteList(use_spatial_hash=True)
 
         self.player_list = arcade.SpriteList()
-        self.player_list.append(self.player_sprite)
+        self.player_list.append(self.cursor)
 
         self.wall_list = arcade.SpriteList(use_spatial_hash=True)
 
+        self.goos = arcade.SpriteList()
+        self.liens = arcade.SpriteList()
+        self.plateformes = arcade.SpriteList()
 
         # Plateforme Gauche
         for x in range(0, 256, 64):
@@ -183,7 +188,7 @@ class GameView(arcade.Window):
         # On utilise PhysicsEngineSimple pour le joueur.
         # Ce moteur gère les collisions murs/joueur MAIS n'applique pas de gravité.
         self.physics_engine = arcade.PhysicsEngineSimple(
-            self.player_sprite,
+            self.cursor,
             walls=self.wall_list
         )
 
@@ -193,7 +198,7 @@ class GameView(arcade.Window):
         self.ball_list = arcade.SpriteList()
 
         # Liste des moteurs physiques (un engine par boule)
-        self.ball_physics_engines = []
+        self.goo_physics_engines = []
 
 
     def setup(self):
@@ -205,44 +210,39 @@ class GameView(arcade.Window):
         self.clear()
         self.player_list.draw()
         self.wall_list.draw()
-        self.ball_list.draw()
+        self.goos.draw()
 
 
     def on_update(self, delta_time):
         """Movement and Game Logic"""
-
+        #print(len(self.goos))
         # Move the player using our simple physics engine (pas de gravité)
         self.physics_engine.update()
 
         # Mettre à jour toutes les boules (elles ont la gravité)
-        for engine in self.ball_physics_engines:
+        for engine in self.goo_physics_engines:
             engine.update()
 
     def on_key_press(self, key, modifiers):
         """Called whenever a key is pressed."""
 
         if key == arcade.key.UP or key == arcade.key.Z:
-            self.player_sprite.change_y = PLAYER_MOVEMENT_SPEED
+            self.cursor.change_y = PLAYER_MOVEMENT_SPEED
         elif key == arcade.key.DOWN or key == arcade.key.S:
-            self.player_sprite.change_y = -PLAYER_MOVEMENT_SPEED
+            self.cursor.change_y = -PLAYER_MOVEMENT_SPEED
         elif key == arcade.key.LEFT or key == arcade.key.Q:
-            self.player_sprite.change_x = -PLAYER_MOVEMENT_SPEED
+            self.cursor.change_x = -PLAYER_MOVEMENT_SPEED
         elif key == arcade.key.RIGHT or key == arcade.key.D:
-            self.player_sprite.change_x = PLAYER_MOVEMENT_SPEED
+            self.cursor.change_x = PLAYER_MOVEMENT_SPEED
 
         if key == arcade.key.ENTER:
-            # Créer la boule
-            try:
-                ball = arcade.Sprite("media/boule.png", scale=PLAYER_SCALE)
-            except:
-                ball = arcade.Sprite(":resources:images/items/gold_1.png", scale=PLAYER_SCALE)
-
-            # Position : sur le joueur
-            ball.center_x = self.player_sprite.center_x
-            ball.center_y = self.player_sprite.center_y
+            goo_x = int(self.cursor.center_x)
+            goo_y = int(self.cursor.center_y)
+            print(goo_x, goo_y)
+            goo = Goo(goo_x, goo_y, self.goos, self.liens, self.plateformes)
 
             # Ajouter à la liste d'affichage
-            self.ball_list.append(ball)
+            self.goos.append(goo)
 
             # --- MODIFICATION ICI ---
             # SUPPRIMEZ ou COMMENTEZ cette ligne :
@@ -252,13 +252,13 @@ class GameView(arcade.Window):
             # Créer un engine physique pour cette boule
             # Elle va tomber et s'arrêter sur les murs (sol/caisses) définis dans self.wall_list
             # Mais elle ne s'arrêtera pas sur les autres boules car elles ne sont pas dans la liste.
-            ball_engine = arcade.PhysicsEnginePlatformer(
-                ball,
+            goo_engine = arcade.PhysicsEnginePlatformer(
+                goo,
                 walls=self.wall_list,
                 gravity_constant=GRAVITY
             )
 
-            self.ball_physics_engines.append(ball_engine)
+            self.goo_physics_engines.append(goo_engine)
 
     def on_key_release(self, key, modifiers):
         """Called whenever a key is released."""
@@ -267,14 +267,14 @@ class GameView(arcade.Window):
         # quand on relâche la touche, sinon le joueur continue de glisser.
 
         if key == arcade.key.UP or key == arcade.key.Z:
-            self.player_sprite.change_y = 0
+            self.cursor.change_y = 0
         elif key == arcade.key.DOWN or key == arcade.key.S:
-            self.player_sprite.change_y = 0
+            self.cursor.change_y = 0
 
         if key == arcade.key.LEFT or key == arcade.key.Q or key == arcade.key.A:
-            self.player_sprite.change_x = 0
+            self.cursor.change_x = 0
         elif key == arcade.key.RIGHT or key == arcade.key.D:
-            self.player_sprite.change_x = 0
+            self.cursor.change_x = 0
 
 
 def main():
