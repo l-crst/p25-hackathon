@@ -37,24 +37,37 @@ class Goo(arcade.Sprite):
         self.rayon = 20 #cm
         self.force = np.array([0.0, 0.0])
 
-        #Initialiser les listes de goos proches (et les liens associés)
-        self.goos_proches= arcade.SpriteList()
+        # Initialiser les listes de goos proches (et les liens associés)
+        self.goos_proches = arcade.SpriteList()
         self.liens = arcade.SpriteList()
-        for goo in self.goos:
-            d = dist((self.center_x, self.center_y), (goo.center_x, goo.center_y))
-            if goo == self:
-                continue
-            if d < 100:
-                self.goos_proches.append(goo)
-                goo.goos_proches.append(self)
-                nouveau_lien = Lien([self, goo])
+
+        if est_plateforme:
+            self.alpha = 100
+        else:
+            for goo in self.goos:
+                d = dist((self.center_x, self.center_y), (goo.center_x, goo.center_y))
+                if goo == self:
+                    continue
+                if d < 100:
+                    self.goos_proches.append(goo)
+                    goo.goos_proches.append(self)
+                    nouveau_lien = Lien([self, goo])
+                    self.liens_tot.append(nouveau_lien)
+                    self.liens.append(nouveau_lien)
+
+            goo_plateforme_distmin = np.inf
+            goo_plateforme_proche = None
+            for plateforme in self.plateformes:
+                d = dist((self.center_x, self.center_y), (plateforme.center_x, plateforme.center_y))
+                if d < goo_plateforme_distmin:
+                    goo_plateforme_distmin = d
+                    goo_plateforme_proche = plateforme
+            if goo_plateforme_distmin < 100:
+                self.goos_proches.append(goo_plateforme_proche)
+                goo_plateforme_proche.goos_proches.append(self)
+                nouveau_lien = Lien([self, goo_plateforme_proche])
                 self.liens_tot.append(nouveau_lien)
                 self.liens.append(nouveau_lien)
-
-        self.est_plateforme = est_plateforme
-        if self.est_plateforme:
-            self.alpha = 0
-            #enlever la gravité
 
 
     def update(self, delta_time):
@@ -108,8 +121,6 @@ class Goo(arcade.Sprite):
 
     def apply_force(self, force):
         self.force += force
-
-
 
 
 
@@ -205,16 +216,21 @@ class GameView(arcade.Window):
 
         # Plateforme Gauche
         for x in range(0, 256, 64):
+            goon_plateforme = Goo(x, 64, self.goos, self.liens_tot, self.plateformes, est_plateforme=True)
             wall = arcade.Sprite(":resources:images/tiles/grassMid.png", scale=TILE_SCALING)
             wall.center_x = x
             wall.center_y = 32
             self.wall_list.append(wall)
+            self.plateformes.append(goon_plateforme)
 
         # Plateforme Droite
         for x in range(1000, 1280, 64):
+            goon_plateforme = Goo(x, 64, self.goos, self.liens_tot, self.plateformes, est_plateforme=True)
             wall = arcade.Sprite(":resources:images/tiles/grassMid.png", scale=TILE_SCALING)
             wall.center_x = x
             wall.center_y = 32
+
+            self.plateformes.append(goon_plateforme)
             self.wall_list.append(wall)
 
         # mettre une crate au centre"
@@ -251,6 +267,7 @@ class GameView(arcade.Window):
         self.wall_list.draw()
         self.liens_tot.draw()
         self.goos.draw()
+        self.plateformes.draw()
 
 
     def on_update(self, delta_time):
