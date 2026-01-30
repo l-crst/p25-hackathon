@@ -133,18 +133,6 @@ class Lien(arcade.Sprite):
         self.center_x, self.center_y = (pos[0]+pos[1])/2
         self.angle = np.degrees(np.arctan2(pos[1][1]-pos[0][1], pos[1][0]-pos[0][0]))
 
-# Constants
-WINDOW_WIDTH = 1280
-WINDOW_HEIGHT = 720
-WINDOW_TITLE = "Platformer - Mode Vol (Sans Gravité Joueur)"
-
-# Constants used to scale our sprites from their original size
-TILE_SCALING = 0.5
-
-# Movement speed of player, in pixels per frame
-PLAYER_MOVEMENT_SPEED = 5
-GRAVITY = 1.0
-PLAYER_SCALE = 0.1
 
 class GameView(arcade.Window):
     """
@@ -155,7 +143,7 @@ class GameView(arcade.Window):
         # Call the parent class and set up the window
         super().__init__(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE)
 
-        self.player_sprite = arcade.Sprite("boule.png", scale=PLAYER_SCALE)
+        self.player_sprite = arcade.Sprite("media/boule.png", scale=PLAYER_SCALE)
 
         self.player_sprite.center_x = 64
         self.player_sprite.center_y = 128
@@ -245,7 +233,7 @@ class GameView(arcade.Window):
         if key == arcade.key.ENTER:
             # Créer la boule
             try:
-                ball = arcade.Sprite("boule.png", scale=PLAYER_SCALE)
+                ball = arcade.Sprite("media/boule.png", scale=PLAYER_SCALE)
             except:
                 ball = arcade.Sprite(":resources:images/items/gold_1.png", scale=PLAYER_SCALE)
 
