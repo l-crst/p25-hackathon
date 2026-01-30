@@ -126,12 +126,13 @@ class Plateforme(arcade.Sprite):
 
 class Lien(arcade.Sprite):
     def __init__(self, goos):
-        super().__init__("media/barre.png", scale=0.1)  # mettre le sprite ici
+        super().__init__("media/barre.png")  # mettre le sprite ici
         self.goos = goos
         self.l0 = dist((self.goos[0].center_x, self.goos[0].center_y), (self.goos[1].center_x, self.goos[1].center_y))
         self.k = 6
         self.l = self.l0
         self.c = 1
+        self.scale_y = 0.1
 
     def goos_pos(self):
         return [np.array([goo.center_x, goo.center_y]) for goo in self.goos]
@@ -144,6 +145,7 @@ class Lien(arcade.Sprite):
         self.center_x, self.center_y = (pos[0]+pos[1])/2
         self.angle = np.degrees(np.arctan2(pos[1][1]-pos[0][1], -pos[1][0]+pos[0][0]))
         self.force_elastique()
+        self.scale_x = self.l / self.texture.width
 
     def force_elastique(self):
         a, b = self.goos[0], self.goos[1]
