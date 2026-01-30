@@ -63,8 +63,7 @@ class Goo(arcade.Sprite):
         self.change_x *= 0.95
         self.change_y += ay * delta_time
         self.change_y *= 0.95
-        print(self.change_x, self.change_y)
-        print(self.force)
+
 
     def ajouter_plateforme_proche(self): #distinction de cas si sur un coté ou un coin
         for plateforme in self.plateformes:
@@ -183,7 +182,7 @@ class GameView(arcade.Window):
         # Call the parent class and set up the window
         super().__init__(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE)
 
-        self.cursor = arcade.Sprite("media/cursor.png", scale=PLAYER_SCALE)
+        self.cursor = arcade.Sprite("media/cursor.png", scale=0)
         self.cursor.center_x = 64
         self.cursor.center_y = 128
 
@@ -253,7 +252,6 @@ class GameView(arcade.Window):
 
     def on_update(self, delta_time):
         """Movement and Game Logic"""
-        #print(len(self.goos))
         # Move the player using our simple physics engine (pas de gravité)
         self.physics_engine.update()
         for goo in self.goos:
@@ -269,20 +267,9 @@ class GameView(arcade.Window):
 
     def on_key_press(self, key, modifiers):
         """Called whenever a key is pressed."""
-
-        if key == arcade.key.UP or key == arcade.key.Z:
-            self.cursor.change_y = PLAYER_MOVEMENT_SPEED
-        elif key == arcade.key.DOWN or key == arcade.key.S:
-            self.cursor.change_y = -PLAYER_MOVEMENT_SPEED
-        elif key == arcade.key.LEFT or key == arcade.key.Q:
-            self.cursor.change_x = -PLAYER_MOVEMENT_SPEED
-        elif key == arcade.key.RIGHT or key == arcade.key.D:
-            self.cursor.change_x = PLAYER_MOVEMENT_SPEED
-
         if key == arcade.key.ENTER:
             goo_x = int(self.cursor.center_x)
             goo_y = int(self.cursor.center_y)
-            print(goo_x, goo_y)
             goo = Goo(goo_x, goo_y, self.goos, self.liens_tot, self.plateformes)
 
             # Ajouter à la liste d'affichage
@@ -304,21 +291,10 @@ class GameView(arcade.Window):
 
             self.goo_physics_engines.append(goo_engine)
 
-    def on_key_release(self, key, modifiers):
-        """Called whenever a key is released."""
-
-        # Avec PhysicsEngineSimple, il faut arrêter le mouvement Y manuellement
-        # quand on relâche la touche, sinon le joueur continue de glisser.
-
-        if key == arcade.key.UP or key == arcade.key.Z:
-            self.cursor.change_y = 0
-        elif key == arcade.key.DOWN or key == arcade.key.S:
-            self.cursor.change_y = 0
-
-        if key == arcade.key.LEFT or key == arcade.key.Q or key == arcade.key.A:
-            self.cursor.change_x = 0
-        elif key == arcade.key.RIGHT or key == arcade.key.D:
-            self.cursor.change_x = 0
+    def on_mouse_motion(self, x, y, dx, dy):
+        """ Called to update our mouse pointer sprite. """
+        self.cursor.center_x = x
+        self.cursor.center_y = y
 
 
 def main():
