@@ -35,6 +35,7 @@ class Goo(arcade.Sprite):
         self.vy = 0
         self.masse = 400e-3 #kg
         self.rayon = 20 #cm
+        self.force = np.array([0.0, 0.0])
 
         #Initialiser les listes de goos proches (et les liens associés)
         self.goos_proches= arcade.SpriteList()
@@ -44,7 +45,6 @@ class Goo(arcade.Sprite):
             if goo == self:
                 continue
             if d < 100:
-                print('caca')
                 self.goos_proches.append(goo)
                 goo.goos_proches.append(self)
                 nouveau_lien = Lien([self, goo])
@@ -58,7 +58,13 @@ class Goo(arcade.Sprite):
 
 
     def update(self, delta_time):
-        self.force_elastique()
+        ax, ay = (self.force / self.masse)
+        self.change_x += ax * delta_time
+        self.change_x *= 0.95
+        self.change_y += ay * delta_time
+        self.change_y *= 0.95
+        print(self.change_x, self.change_y)
+        print(self.force)
 
     def ajouter_plateforme_proche(self): #distinction de cas si sur un coté ou un coin
         for plateforme in self.plateformes:
@@ -98,15 +104,14 @@ class Goo(arcade.Sprite):
                         self.liens_tot.append(nouveau_lien)
                         self.liens.append(nouveau_lien)
 
+    def reset_force(self):
+        self.force = np.array([0.0, 0.0])
 
-    #Force elastique exercée par les liens
-    def force_elastique(self):
-        for lien in self.liens:
-            AB = lien.goos_pos()[1] - lien.goos_pos()[0]
-            ab = AB / np.linalg.norm(AB)
-            dgoo = lien.k*(lien.l-lien.l0)*ab*delta_time/self.masse
-            self.center_x += dgoo[0]
-            self.center_y += dgoo[1]
+    def apply_force(self, force):
+        self.force += force
+
+
+
 
 
 class Plateforme(arcade.Sprite):
@@ -124,8 +129,8 @@ class Lien(arcade.Sprite):
     def __init__(self, goos):
         super().__init__("media/barre.png", scale=0.1)  # mettre le sprite ici
         self.goos = goos
-        self.l0 = dist((self.goos[0].center_x, self.goos[0].center_y), (self.goos[0].center_x, self.goos[1].center_y))
-        self.k = 30
+        self.l0 = dist((self.goos[0].center_x, self.goos[0].center_y), (self.goos[1].center_x, self.goos[1].center_y))
+        self.k = 1
         self.l = self.l0
 
     def goos_pos(self):
@@ -138,7 +143,21 @@ class Lien(arcade.Sprite):
         self.image_width = self.l
         self.center_x, self.center_y = (pos[0]+pos[1])/2
         self.angle = np.degrees(np.arctan2(pos[1][1]-pos[0][1], -pos[1][0]+pos[0][0]))
+        self.force_elastique()
 
+    def force_elastique(self):
+        a, b = self.goos[0], self.goos[1]
+
+        a.reset_force()
+        b.reset_force()
+        coord_a = np.array([a.center_x, a.center_y], dtype=float)
+        coord_b = np.array([b.center_x, b.center_y], dtype=float)
+
+        F = self.k*(self.l - self.l0) * (coord_b - coord_a) / self.l
+        F-=np.array([a.change_x, a.change_y])*0.1
+
+        a.apply_force(+F)
+        b.apply_force(-F)
 
 class GameView(arcade.Window):
     """
