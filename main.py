@@ -222,6 +222,7 @@ class GameView(arcade.Window):
         crate.position = [WINDOW_WIDTH // 2, 96] # Au centre
         self.wall_list.append(crate)
 
+        self.goos.append(Goo(100, 64, self.goos, self.liens_tot, self.plateformes))
 
         # On utilise PhysicsEngineSimple pour le joueur.
         # Ce moteur gère les collisions murs/joueur MAIS n'applique pas de gravité.
@@ -270,28 +271,30 @@ class GameView(arcade.Window):
     def on_key_press(self, key, modifiers):
         """Called whenever a key is pressed."""
         if key == arcade.key.ENTER:
-            goo_x = int(self.cursor.center_x)
-            goo_y = int(self.cursor.center_y)
-            goo = Goo(goo_x, goo_y, self.goos, self.liens_tot, self.plateformes)
+            near_goo_count = 0
+            for goo in self.goos:
+                d = dist((self.cursor.center_x, self.cursor.center_y), (goo.center_x, goo.center_y))
+                if goo == self:
+                    continue
+                if d < 100:
+                    near_goo_count += 1
 
-            # Ajouter à la liste d'affichage
-            self.goos.append(goo)
+            if near_goo_count >= 1:
 
-            # --- MODIFICATION ICI ---
-            # SUPPRIMEZ ou COMMENTEZ cette ligne :
-            # self.wall_list.append(ball)  <-- C'est elle la coupable !
-            # ------------------------
+                goo_x = int(self.cursor.center_x)
+                goo_y = int(self.cursor.center_y)
+                goo = Goo(goo_x, goo_y, self.goos, self.liens_tot, self.plateformes)
 
-            # Créer un engine physique pour cette boule
-            # Elle va tomber et s'arrêter sur les murs (sol/caisses) définis dans self.wall_list
-            # Mais elle ne s'arrêtera pas sur les autres boules car elles ne sont pas dans la liste.
-            goo_engine = arcade.PhysicsEnginePlatformer(
-                goo,
-                walls=self.wall_list,
-                gravity_constant=GRAVITY
-            )
+                # Ajouter à la liste d'affichage
+                self.goos.append(goo)
 
-            self.goo_physics_engines.append(goo_engine)
+                goo_engine = arcade.PhysicsEnginePlatformer(
+                    goo,
+                    walls=self.wall_list,
+                    gravity_constant=GRAVITY
+                )
+
+                self.goo_physics_engines.append(goo_engine)
 
     def on_mouse_motion(self, x, y, dx, dy):
         """ Called to update our mouse pointer sprite. """
