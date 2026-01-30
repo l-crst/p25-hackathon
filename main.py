@@ -48,7 +48,7 @@ class Goo(arcade.Sprite):
                 d = dist((self.center_x, self.center_y), (goo.center_x, goo.center_y))
                 if goo == self:
                     continue
-                if d < 50:
+                if d < 100:
                     self.goos_proches.append(goo)
                     goo.goos_proches.append(self)
                     nouveau_lien = Lien([self, goo])
@@ -62,7 +62,7 @@ class Goo(arcade.Sprite):
                 if d < goo_plateforme_distmin:
                     goo_plateforme_distmin = d
                     goo_plateforme_proche = plateforme
-            if goo_plateforme_distmin < 100:
+            if goo_plateforme_distmin < 50:
                 self.goos_proches.append(goo_plateforme_proche)
                 goo_plateforme_proche.goos_proches.append(self)
                 nouveau_lien = Lien([self, goo_plateforme_proche])
