@@ -14,7 +14,7 @@ class Spring(arcade.Sprite):
     def goos_pos(self):
         return [np.array([goo.center_x, goo.center_y]) for goo in self.goos]
 
-    def calcul_pos(self):
+    def update(self):
         pos = self.goos_pos()
 
         self.l = dist(pos[0], pos[1])
