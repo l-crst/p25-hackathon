@@ -37,18 +37,6 @@ class Goo(arcade.Sprite):
         super().__init__() #mettre le sprite ici
 
 
-    def  ajouter_lien_goo(self, goo):
-        self.liens.append(Lien(goo, self))
-
-    def ajouter_lien_plateforme(self, point):
-        self.liens.append(Lien(self, point))
-
-    def ajouter_goo_proche(self):
-        for goo in self.goos_proches:
-            dist=((goo.x-self.x)**2+(goo.y-self.y)**2)**(1/2)
-            if dist<20:
-                self.ajouter_lien(goo) #à modifier quand on aura les classes liens
-
     def ajouter_plateforme_proche(self):
         for plateforme in self.plateforme:
             if self.x<plateforme.x+plateforme.longueur/2 and self.x>plateforme.x-plateforme.longueur/2:
