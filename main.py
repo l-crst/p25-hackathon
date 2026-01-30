@@ -42,13 +42,13 @@ class Goo(arcade.Sprite):
         self.liens = arcade.SpriteList()
 
         if est_plateforme:
-            self.alpha = 100
+            self.alpha = 0
         else:
             for goo in self.goos:
                 d = dist((self.center_x, self.center_y), (goo.center_x, goo.center_y))
                 if goo == self:
                     continue
-                if d < 100:
+                if d < 50:
                     self.goos_proches.append(goo)
                     goo.goos_proches.append(self)
                     nouveau_lien = Lien([self, goo])
@@ -77,45 +77,6 @@ class Goo(arcade.Sprite):
         self.change_y += ay * delta_time
         self.change_y *= 0.95
 
-
-    def ajouter_plateforme_proche(self): #distinction de cas si sur un coté ou un coin
-        for plateforme in self.plateformes:
-            if self.center_x<plateforme.center_x+plateforme.longueur/2 and self.center_x>plateforme.center_x-plateforme.longueur/2:
-                    sens = math.copysign(1, self.center_y - plateforme.center_y)
-                    dist=abs(self.center_y-(plateforme.center_y+plateforme.hauteur/2))
-                    if dist<10:
-                        goo=Goo(self.center_x, plateforme.center_y+sens*plateforme.hauteur/2, True)
-                        self.goos.append(goo)
-                        nouveau_lien = Lien([self, goo])
-                        self.liens_tot.append(nouveau_lien)
-                        self.liens.append(nouveau_lien)
-
-
-            elif self.center_y<plateforme.center_y+plateforme.hauteur/2 and self.center_y>plateforme.center_y-plateforme.hauteur/2:
-                    sens = math.copysign(1, self.center_x - plateforme.center_x)
-                    dist=abs(self.center_x-(plateforme.center_x+plateforme.longueur/2))
-                    if dist<10:
-                        goo=Goo(plateforme.center_x+sens*plateforme.longueur/2, self.center_y, True)
-                        self.goos.append(goo)
-                        nouveau_lien = Lien([self, goo])
-                        self.liens_tot.append(nouveau_lien)
-                        self.liens.append(nouveau_lien)
-
-
-            else :
-                coins=[(plateforme.center_x+plateforme.longueur/2, plateforme.center_y+plateforme.hauteur/2),
-                       (plateforme.center_x-plateforme.longueur/2, plateforme.center_y+plateforme.hauteur/2),
-                       (plateforme.center_x+plateforme.longueur/2, plateforme.center_y-plateforme.hauteur/2),
-                       (plateforme.center_x-plateforme.longueur/2, plateforme.center_y-plateforme.hauteur/2)]
-                for coin in coins:
-                    dist=((coin[0]-self.center_x)**2+(coin[1]-self.center_y)**2)**(1/2)
-                    if dist<20:
-                        goo=Goo(coin[0], coin[1], True)
-                        self.goos.append(goo)
-                        nouveau_lien = Lien([self, goo])
-                        self.liens_tot.append(nouveau_lien)
-                        self.liens.append(nouveau_lien)
-
     def reset_force(self):
         self.force = np.array([0.0, 0.0])
 
@@ -125,13 +86,24 @@ class Goo(arcade.Sprite):
 
 
 class Plateforme(arcade.Sprite):
-    def __init__(self, center_x, center_y, hauteur, longueur):
-        self.center_x = center_x
-        self.center_y = center_y
-        self.hauteur = hauteur
-        self.longueur = longueur
-        super().__init__() #mettre le sprite ici
+    def __init__(self, x, y, goos, liens_tot, plateformes):
+        self.goos_plateforme = arcade.SpriteList()
+        for i in range(x-32, x+33, 5):
+            goo_plateforme = Goo(i, y+25, goos, liens_tot, plateformes, est_plateforme=True)
+            self.goos_plateforme.append(goo_plateforme)
+        for i in range(y-32, y+33, 5):
+            goo_plateforme = Goo(x+25, i, goos, liens_tot, plateformes, est_plateforme=True)
+            self.goos_plateforme.append(goo_plateforme)
+            goo_plateforme = Goo(x - 25, i, goos, liens_tot, plateformes, est_plateforme=True)
+            self.goos_plateforme.append(goo_plateforme)
+        self.wall = arcade.Sprite(":resources:images/tiles/grassMid.png", scale=TILE_SCALING)
+        self.wall.center_x = x
+        self.wall.center_y = y
 
+    def add_to_plateformes(self, plateformes, walls):
+        for goo_plateforme in self.goos_plateforme:
+            plateformes.append(goo_plateforme)
+        walls.append(self.wall)
 
 
 
@@ -216,22 +188,13 @@ class GameView(arcade.Window):
 
         # Plateforme Gauche
         for x in range(0, 256, 64):
-            goon_plateforme = Goo(x, 64, self.goos, self.liens_tot, self.plateformes, est_plateforme=True)
-            wall = arcade.Sprite(":resources:images/tiles/grassMid.png", scale=TILE_SCALING)
-            wall.center_x = x
-            wall.center_y = 32
-            self.wall_list.append(wall)
-            self.plateformes.append(goon_plateforme)
+            plateforme = Plateforme(x, 32, self.goos, self.liens_tot, self.plateformes)
+            plateforme.add_to_plateformes(self.plateformes,self.wall_list)
 
         # Plateforme Droite
         for x in range(1000, 1280, 64):
-            goon_plateforme = Goo(x, 64, self.goos, self.liens_tot, self.plateformes, est_plateforme=True)
-            wall = arcade.Sprite(":resources:images/tiles/grassMid.png", scale=TILE_SCALING)
-            wall.center_x = x
-            wall.center_y = 32
-
-            self.plateformes.append(goon_plateforme)
-            self.wall_list.append(wall)
+            plateforme = Plateforme(x, 32, self.goos, self.liens_tot, self.plateformes)
+            plateforme.add_to_plateformes(self.plateformes, self.wall_list)
 
         # mettre une crate au centre"
         crate = arcade.Sprite(":resources:images/tiles/boxCrate_double.png", scale=TILE_SCALING)
