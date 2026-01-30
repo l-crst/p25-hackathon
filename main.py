@@ -7,6 +7,7 @@ delta_time = 1/60
 WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
 WINDOW_TITLE = "Platformer - Mode Vol (Sans Gravité Joueur)"
+CLICK_NIVEAU=30
 
 # Constants used to scale our sprites from their original size
 TILE_SCALING = 0.5
@@ -42,7 +43,7 @@ class Goo(arcade.Sprite):
         self.liens = arcade.SpriteList()
 
         if est_plateforme:
-            self.alpha = 100
+            self.alpha = 0
         else:
             for goo in self.goos:
                 d = dist((self.center_x, self.center_y), (goo.center_x, goo.center_y))
@@ -194,10 +195,12 @@ class GameView(arcade.Window):
 
         # Call the parent class and set up the window
         super().__init__(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE)
-
         self.cursor = arcade.Sprite("media/cursor.png", scale=0)
         self.cursor.center_x = 64
         self.cursor.center_y = 128
+        self.click=0
+
+        self.score_text = arcade.Text(f"Score: {self.click}/{CLICK_NIVEAU}", x = 100, y = 700)
 
         # SpriteList for our player
         self.player_list = arcade.SpriteList()
@@ -268,6 +271,7 @@ class GameView(arcade.Window):
         self.liens_tot.draw()
         self.goos.draw()
         self.plateformes.draw()
+        self.score_text.draw()
 
 
     def on_update(self, delta_time):
@@ -284,10 +288,15 @@ class GameView(arcade.Window):
         # Mettre à jour toutes les boules (elles ont la gravité)
         for engine in self.goo_physics_engines:
             engine.update()
+        
+        #mettre à jour le score
+        self.score_text.text = f"Score: {self.click}/{CLICK_NIVEAU}"
+        
 
     def on_key_press(self, key, modifiers):
         """Called whenever a key is pressed."""
         if key == arcade.key.ENTER:
+                       
             near_goo_count = 0
             for goo in self.goos:
                 d = dist((self.cursor.center_x, self.cursor.center_y), (goo.center_x, goo.center_y))
@@ -297,6 +306,9 @@ class GameView(arcade.Window):
                     near_goo_count += 1
 
             if near_goo_count >= 1:
+                if self.click>=CLICK_NIVEAU:
+                    return
+                self.click+=1
 
                 goo_x = int(self.cursor.center_x)
                 goo_y = int(self.cursor.center_y)
