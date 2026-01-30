@@ -87,17 +87,19 @@ class Goo(arcade.Sprite):
 
 
 class Plateforme(arcade.Sprite):
-    def __init__(self, x, y, goos, liens_tot, plateformes):
+    def __init__(self, x, y, goos, liens_tot, plateformes, texture="grassMid.png"):
         self.goos_plateforme = arcade.SpriteList()
         for i in range(x-32, x+33, 5):
             goo_plateforme = Goo(i, y+25, goos, liens_tot, plateformes, est_plateforme=True)
+            self.goos_plateforme.append(goo_plateforme)
+            goo_plateforme = Goo(i, y - 25, goos, liens_tot, plateformes, est_plateforme=True)
             self.goos_plateforme.append(goo_plateforme)
         for i in range(y-32, y+33, 5):
             goo_plateforme = Goo(x+25, i, goos, liens_tot, plateformes, est_plateforme=True)
             self.goos_plateforme.append(goo_plateforme)
             goo_plateforme = Goo(x - 25, i, goos, liens_tot, plateformes, est_plateforme=True)
             self.goos_plateforme.append(goo_plateforme)
-        self.wall = arcade.Sprite(":resources:images/tiles/grassMid.png", scale=TILE_SCALING)
+        self.wall = arcade.Sprite(f":resources:images/tiles/{texture}", scale=TILE_SCALING)
         self.wall.center_x = x
         self.wall.center_y = y
 
@@ -200,9 +202,8 @@ class GameView(arcade.Window):
             plateforme.add_to_plateformes(self.plateformes, self.wall_list)
 
         # mettre une crate au centre"
-        crate = arcade.Sprite(":resources:images/tiles/boxCrate_double.png", scale=TILE_SCALING)
-        crate.position = [WINDOW_WIDTH // 2, 96] # Au centre
-        self.wall_list.append(crate)
+        boite = Plateforme(WINDOW_WIDTH // 2, 96, self.goos, self.liens_tot, self.plateformes, texture="boxCrate_double.png")
+        boite.add_to_plateformes(self.plateformes, self.wall_list)
 
         self.goos.append(Goo(100, 64, self.goos, self.liens_tot, self.plateformes))
 
