@@ -1,5 +1,6 @@
 import arcade
 import numpy as np
+import math
 
 delta_time = 1/60
 
@@ -8,7 +9,7 @@ def dist(a,b):
 
 #world of goos en python
 class Goo(arcade.Sprite):
-    def __init__(self, x, y, goos, liens, plateformes):
+    def __init__(self, x, y, goos, liens, plateformes, est_plateforme=False):
         self.center_x = x
         self.center_y = y
         #Liste de tous les goos, tous les liens, toutes les plateformes
@@ -63,8 +64,8 @@ class Goo(arcade.Sprite):
             else :
                 coins=[(plateforme.center_x+plateforme.longueur/2, plateforme.center_y+plateforme.hauteur/2),
                        (plateforme.center_x-plateforme.longueur/2, plateforme.center_y+plateforme.hauteur/2),
-                       (plateforme.center_x+plateforme.longueur/2, plateforme.center_y-hauteur/2),
-                       (plateforme.center_x-plateforme.longueur/2, plateforme.center_y-hauteur/2)]
+                       (plateforme.center_x+plateforme.longueur/2, plateforme.center_y-plateforme.hauteur/2),
+                       (plateforme.center_x-plateforme.longueur/2, plateforme.center_y-plateforme.hauteur/2)]
                 for coin in coins:
                     dist=((coin[0]-self.center_x)**2+(coin[1]-self.center_y)**2)**(1/2)
                     if dist<20:
