@@ -7,7 +7,7 @@ def dist(a,b):
 class Spring(arcade.Sprite):
     def __init__(self, goos):
         self.goos = goos
-        self.l0 = dist((self.goos[0].center_x, self.goos[0].center_y), (self.goos[0].center_x, selfgoos[1].center_y))
+        self.l0 = dist((self.goos[0].center_x, self.goos[0].center_y), (self.goos[0].center_x, self.goos[1].center_y))
         self.k = 100
         self.l = self.l0
 
