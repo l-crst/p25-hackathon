@@ -43,7 +43,8 @@ class Goo(arcade.Sprite):
             d = dist((self.center_x, self.center_y), (goo.center_x, goo.center_y))
             if goo == self:
                 continue
-            if d < 20:
+            if d < 100:
+                print('caca')
                 self.goos_proches.append(goo)
                 goo.goos_proches.append(self)
                 nouveau_lien = Lien([self, goo])
@@ -124,19 +125,19 @@ class Lien(arcade.Sprite):
         super().__init__("media/barre.png", scale=0.1)  # mettre le sprite ici
         self.goos = goos
         self.l0 = dist((self.goos[0].center_x, self.goos[0].center_y), (self.goos[0].center_x, self.goos[1].center_y))
-        self.k = 100
+        self.k = 30
         self.l = self.l0
 
     def goos_pos(self):
         return [np.array([goo.center_x, goo.center_y]) for goo in self.goos]
 
-    def update(self):
+    def update(self, delta_time):
         pos = self.goos_pos()
 
         self.l = dist(pos[0], pos[1])
         self.image_width = self.l
         self.center_x, self.center_y = (pos[0]+pos[1])/2
-        self.angle = np.degrees(np.arctan2(pos[1][1]-pos[0][1], pos[1][0]-pos[0][0]))
+        self.angle = np.degrees(np.arctan2(pos[1][1]-pos[0][1], -pos[1][0]+pos[0][0]))
 
 
 class GameView(arcade.Window):
@@ -212,6 +213,7 @@ class GameView(arcade.Window):
         self.clear()
         self.player_list.draw()
         self.wall_list.draw()
+        self.liens_tot.draw()
         self.goos.draw()
 
 
@@ -220,7 +222,10 @@ class GameView(arcade.Window):
         #print(len(self.goos))
         # Move the player using our simple physics engine (pas de gravité)
         self.physics_engine.update()
-
+        for goo in self.goos:
+            goo.update(delta_time)
+        for lien in self.liens_tot:
+            lien.update(delta_time)
         # Mettre à jour toutes les boules (elles ont la gravité)
         for engine in self.goo_physics_engines:
             engine.update()
