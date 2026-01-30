@@ -24,6 +24,7 @@ def dist(a,b):
 #world of goos en python
 class Goo(arcade.Sprite):
     def __init__(self, x, y, goos, liens, plateformes, est_plateforme=False):
+        super().__init__('media/boule.png', scale=PLAYER_SCALE)  # mettre le sprite ici
         self.center_x = x
         self.center_y = y
         #Liste de tous les goos, tous les liens, toutes les plateformes
@@ -53,7 +54,7 @@ class Goo(arcade.Sprite):
         if self.est_plateforme:
             self.alpha = 0
             #enlever la gravité
-        super().__init__('media/boule.png', scale = PLAYER_SCALE) #mettre le sprite ici
+
 
     def update(self, delta_time):
         self.force_elastique()
@@ -120,6 +121,7 @@ class Plateforme(arcade.Sprite):
 
 class Lien(arcade.Sprite):
     def __init__(self, goos):
+        super().__init__("media/barre.png", scale=0.1)  # mettre le sprite ici
         self.goos = goos
         self.l0 = dist((self.goos[0].center_x, self.goos[0].center_y), (self.goos[0].center_x, self.goos[1].center_y))
         self.k = 100
@@ -162,7 +164,7 @@ class GameView(arcade.Window):
         self.wall_list = arcade.SpriteList(use_spatial_hash=True)
 
         self.goos = arcade.SpriteList()
-        self.liens = arcade.SpriteList()
+        self.liens_tot = arcade.SpriteList()
         self.plateformes = arcade.SpriteList()
 
         # Plateforme Gauche
@@ -239,7 +241,7 @@ class GameView(arcade.Window):
             goo_x = int(self.cursor.center_x)
             goo_y = int(self.cursor.center_y)
             print(goo_x, goo_y)
-            goo = Goo(goo_x, goo_y, self.goos, self.liens, self.plateformes)
+            goo = Goo(goo_x, goo_y, self.goos, self.liens_tot, self.plateformes)
 
             # Ajouter à la liste d'affichage
             self.goos.append(goo)
