@@ -13,7 +13,7 @@ TILE_SCALING = 0.5
 
 # Movement speed of player, in pixels per frame
 PLAYER_MOVEMENT_SPEED = 5
-GRAVITY = 1/20
+GRAVITY = 1/15
 PLAYER_SCALE = 0.05
 
 
@@ -130,8 +130,9 @@ class Lien(arcade.Sprite):
         super().__init__("media/barre.png", scale=0.1)  # mettre le sprite ici
         self.goos = goos
         self.l0 = dist((self.goos[0].center_x, self.goos[0].center_y), (self.goos[1].center_x, self.goos[1].center_y))
-        self.k = 1
+        self.k = 6
         self.l = self.l0
+        self.c = 1
 
     def goos_pos(self):
         return [np.array([goo.center_x, goo.center_y]) for goo in self.goos]
@@ -148,13 +149,27 @@ class Lien(arcade.Sprite):
     def force_elastique(self):
         a, b = self.goos[0], self.goos[1]
 
-        a.reset_force()
-        b.reset_force()
-        coord_a = np.array([a.center_x, a.center_y], dtype=float)
-        coord_b = np.array([b.center_x, b.center_y], dtype=float)
+        pa = np.array([a.center_x, a.center_y])
+        pb = np.array([b.center_x, b.center_y])
 
-        F = self.k*(self.l - self.l0) * (coord_b - coord_a) / self.l
-        F-=np.array([a.change_x, a.change_y])*0.1
+        d = pb - pa
+        L = np.linalg.norm(d)
+
+
+        if L < 1e-6:
+            return
+
+        n = d / L
+        x = L - self.l0
+
+        va = np.array([a.change_x, a.change_y])
+        vb = np.array([b.change_x, b.change_y])
+
+        rel_v = np.dot(vb - va, n)
+
+        Fs = self.k * x * n
+        Fd = self.c * rel_v * n
+        F = Fs + Fd
 
         a.apply_force(+F)
         b.apply_force(-F)
@@ -242,9 +257,12 @@ class GameView(arcade.Window):
         # Move the player using our simple physics engine (pas de gravité)
         self.physics_engine.update()
         for goo in self.goos:
-            goo.update(delta_time)
+            goo.reset_force()
         for lien in self.liens_tot:
             lien.update(delta_time)
+        for goo in self.goos:
+            goo.update(delta_time)
+
         # Mettre à jour toutes les boules (elles ont la gravité)
         for engine in self.goo_physics_engines:
             engine.update()
