@@ -33,17 +33,44 @@ class Goo(arcade.Sprite):
                 self.liens_tot.append(nouveau_lien)
                 self.liens.append(nouveau_lien)
 
-        self.plateformes_proches = arcade.SpriteList()
+        self.est_plateforme = est_plateforme
+        if self.est_plateforme:
+            self.alpha = 0
+            #enlever la gravité
         super().__init__() #mettre le sprite ici
 
 
     def ajouter_plateforme_proche(self):
-        for plateforme in self.plateforme:
-            if self.x<plateforme.x+plateforme.longueur/2 and self.x>plateforme.x-plateforme.longueur/2:
-                    dist=abs(self.y-(plateforme.center_y+plateforme.hauteur/2))
+        for plateforme in self.plateformes_proches:
+            if self.center_x<plateforme.center_x+plateforme.longueur/2 and self.center_x>plateforme.center_x-plateforme.longueur/2:
+                    sens = math.copysign(1, self.center_y - plateforme.center_y)
+                    dist=abs(self.center_y-(plateforme.center_y+plateforme.hauteur/2))
                     if dist<20:
-                        point=(self.x, plateforme.center_y+plateforme.hauteur/2)
-                        self.ajouter_lien_plateforme(self, point)
+                        goo=Goo(self.center_x, plateforme.center_y+sens*plateforme.hauteur/2, True)
+                        self.goos.append(goo)
+                        self.ajouter_lien(self, goo)
+
+
+            elif self.center_y<plateforme.center_y+plateforme.hauteur/2 and self.center_y>plateforme.center_y-plateforme.hauteur/2:
+                    sens = math.copysign(1, self.center_x - plateforme.center_x)
+                    dist=abs(self.center_x-(plateforme.center_x+plateforme.longueur/2))
+                    if dist<20:
+                        goo=Goo(plateforme.center_x+sens*plateforme.longueur/2, self.center_y, True)
+                        self.goos.append(goo)
+                        self.ajouter_lien(self, goo)
+
+
+            else :
+                coins=[(plateforme.center_x+plateforme.longueur/2, plateforme.center_y+plateforme.hauteur/2),
+                       (plateforme.center_x-plateforme.longueur/2, plateforme.center_y+plateforme.hauteur/2),
+                       (plateforme.center_x+plateforme.longueur/2, plateforme.center_y-hauteur/2),
+                       (plateforme.center_x-plateforme.longueur/2, plateforme.center_y-hauteur/2)]
+                for coin in coins:
+                    dist=((coin[0]-self.center_x)**2+(coin[1]-self.center_y)**2)**(1/2)
+                    if dist<20:
+                        goo=Goo(coin[0], coin[1], True)
+                        self.goos.append(goo)
+                        self.ajouter_lien(self, goo)
 
     #Force elastique exercée par les liens
     def force_elastique(self):
@@ -56,9 +83,9 @@ class Goo(arcade.Sprite):
 
 
 class Plateforme(arcade.Sprite):
-    def __init__(self, centre_x, centre_y, hauteur, longueur):
-        self.x = centre_x
-        self.y = centre_y
+    def __init__(self, center_x, center_y, hauteur, longueur):
+        self.x = center_x
+        self.y = center_y
         self.hauteur = hauteur
         self.longueur = longueur
         super().__init__() #mettre le sprite ici
