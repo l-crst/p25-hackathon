@@ -17,7 +17,11 @@ PLAYER_MOVEMENT_SPEED = 5
 GRAVITY = 1/15
 PLAYER_SCALE = 0.05
 
-
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument("mode", help="donne le numéro du niveau auquel tu veux jouer")
+args = parser.parse_args()
+LEVEL = int(args.mode)
 
 def dist(a,b):
     return ((a[0] - b[0])**2 + (a[1] - b[1])**2)**0.5
@@ -191,21 +195,8 @@ class GameView(arcade.Window):
         self.liens_tot = arcade.SpriteList()
         self.plateformes = arcade.SpriteList()
 
-        # Plateforme Gauche
-        for x in range(0, 256, 64):
-            plateforme = Plateforme(x, 32, self.goos, self.liens_tot, self.plateformes)
-            plateforme.add_to_plateformes(self.plateformes,self.wall_list)
+        self.level = LEVEL
 
-        # Plateforme Droite
-        for x in range(1000, 1280, 64):
-            plateforme = Plateforme(x, 32, self.goos, self.liens_tot, self.plateformes)
-            plateforme.add_to_plateformes(self.plateformes, self.wall_list)
-
-        # mettre une crate au centre"
-        boite = Plateforme(WINDOW_WIDTH // 2, 96, self.goos, self.liens_tot, self.plateformes, texture="boxCrate_double.png")
-        boite.add_to_plateformes(self.plateformes, self.wall_list)
-
-        self.goos.append(Goo(100, 64, self.goos, self.liens_tot, self.plateformes))
 
         # On utilise PhysicsEngineSimple pour le joueur.
         # Ce moteur gère les collisions murs/joueur MAIS n'applique pas de gravité.
@@ -222,6 +213,99 @@ class GameView(arcade.Window):
         # Liste des moteurs physiques (un engine par boule)
         self.goo_physics_engines = []
 
+        if self.level == 1:
+
+            # Plateforme Gauche
+            for x in range(0, 256, 64):
+                plateforme = Plateforme(x, 32, self.goos, self.liens_tot, self.plateformes)
+                plateforme.add_to_plateformes(self.plateformes, self.wall_list)
+
+            # Plateforme Droite
+            for x in range(1000, 1280, 64):
+                plateforme = Plateforme(x, 32, self.goos, self.liens_tot, self.plateformes)
+                plateforme.add_to_plateformes(self.plateformes, self.wall_list)
+
+            # mettre une crate au centre"
+            boite = Plateforme(WINDOW_WIDTH // 2, 96, self.goos, self.liens_tot, self.plateformes,
+                               texture="boxCrate_double.png")
+            boite.add_to_plateformes(self.plateformes, self.wall_list)
+
+            #goo de départ
+            self.goos.append(Goo(100, 64, self.goos, self.liens_tot, self.plateformes))
+
+        elif self.level == 2:
+
+            # mettre une crate au centre"
+            boite = Plateforme(WINDOW_WIDTH // 2, 500, self.goos, self.liens_tot, self.plateformes,
+                               texture="boxCrate_double.png")
+            boite.add_to_plateformes(self.plateformes, self.wall_list)
+
+            # Plateforme Gauche
+            for x in range(0, 128, 64):
+                #texture : sand.png
+                plateforme = Plateforme(x, 128, self.goos, self.liens_tot, self.plateformes, texture="sand.png")
+                plateforme.add_to_plateformes(self.plateformes, self.wall_list)
+
+            # Plateforme Droite
+            for x in range(1200, 1280, 64):
+                plateforme = Plateforme(x, 32, self.goos, self.liens_tot, self.plateformes,texture="sand.png")
+                plateforme.add_to_plateformes(self.plateformes, self.wall_list)
+
+            #goo de départ
+            self.goos.append(Goo(50, 128+32, self.goos, self.liens_tot, self.plateformes))
+
+        elif self.level == 3:
+
+            # Grande statue/rocher au centre. texture = stoneCenter.png, position (WINDOW_WIDTH // 2, 250)
+            rocher = Plateforme(WINDOW_WIDTH // 2, 250, self.goos, self.liens_tot, self.plateformes,
+                               texture="stoneCenter.png")
+            rocher.add_to_plateformes(self.plateformes, self.wall_list)
+
+            # Plateforme gauche — sable
+            #texture = sandMid.png, position y = 64
+            for x in range(0, 320, 64):
+                plateforme = Plateforme(x, 64, self.goos, self.liens_tot, self.plateformes, texture="sandMid.png")
+                plateforme.add_to_plateformes(self.plateformes, self.wall_list)
+
+            # Plateforme droite — roche désertique
+            #texture = stoneMid.png, position y = 64
+            for x in range(960, 1280, 64):
+                plateforme = Plateforme(x, 64, self.goos, self.liens_tot, self.plateformes, texture="sandMid.png")
+                plateforme.add_to_plateformes(self.plateformes, self.wall_list)
+
+            #goo de départ
+            self.goos.append(Goo(50, 64 + 32, self.goos, self.liens_tot, self.plateformes))
+
+
+        elif self.level == 4:
+
+            # Plateformes flottantes en diagonale
+            #texture = stoneMid.png, position (200 + i * 150, 150 + i * 50)
+            for i in range(5):
+                plateforme = Plateforme(200 + i * 150, 150 + i * 50, self.goos, self.liens_tot, self.plateformes, texture="sandMid.png")
+                plateforme.add_to_plateformes(self.plateformes, self.wall_list)
+
+            #texture = gemBlue.png, position (300 + i * 200, 600)
+            for i in range(4):
+                plateforme = Plateforme(300 + i * 200, 600, self.goos, self.liens_tot, self.plateformes,
+                                        texture="sandMid.png")
+                plateforme.add_to_plateformes(self.plateformes, self.wall_list)
+
+            #goo de départ
+            self.goos.append(Goo(200, 150 + 32, self.goos, self.liens_tot, self.plateformes))
+
+        elif self.level == 5:
+            #texture = stoneCenter.png, position y = 32
+            for x in range(0, 1280, 64):
+                plateforme = Plateforme(x, 32, self.goos, self.liens_tot, self.plateformes, texture="stoneCenter.png")
+                plateforme.add_to_plateformes(self.plateformes, self.wall_list)
+
+            #texture = stoneMid.png, position (180 + i * 180, 200 + (i % 2) * 100)
+            for i in range(6):
+                plateforme = Plateforme(180 + i * 180, 200 + (i % 2) * 100, self.goos, self.liens_tot, self.plateformes, texture="stoneMid.png")
+                plateforme.add_to_plateformes(self.plateformes, self.wall_list)
+            #goo de départ
+            self.goos.append(Goo(100, 64, self.goos, self.liens_tot, self.plateformes))
 
     def setup(self):
         """Set up the game here. Call this function to restart the game."""
